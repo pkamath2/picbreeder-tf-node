@@ -3,7 +3,7 @@
 const tf = require('@tensorflow/tfjs-node')
 const express = require('express');
 const bodyParser = require('body-parser');
-const {createCanvas} = require('canvas');
+const {createCanvas, createImageData} = require('canvas');
 const Genome = require('./genome');
 const Mutator = require('./mutator');
 
@@ -18,7 +18,7 @@ let num_output = 1;
 /*Montage props*/
 const montage_size = 25; //Always use a proper square
 
-function createInputs(){
+function createInputs(width, height){
     let t_x = tf.div(tf.div(tf.mul(tf.sub(tf.range(0, width), (width - 1) / 2.0), 1.0), (width - 1)), 0.5);
     t_x = t_x.reshape([1, width]);
     t_x = tf.matMul(tf.ones([height, 1], 'float32'), t_x);
@@ -41,10 +41,6 @@ function main() {
     app.listen(process.env.PORT || port, () => console.log(`Example app listening on port ${port}!`));
     app.use(bodyParser.urlencoded({extended:true}));
     app.use(bodyParser.json());
-    const canvas = createCanvas(width*Math.sqrt(montage_size), height*Math.sqrt(montage_size));
-    canvas.width = width*Math.sqrt(montage_size);
-    canvas.height = height*Math.sqrt(montage_size);
-    var ctx = canvas.getContext('2d');
     
     app.get('/', function(req, res){
         res.sendFile(__dirname+'/views/index.html');
@@ -64,7 +60,7 @@ function main() {
         res.on('finish', () => { console.log('Response sent.') });
         let dataArr = [];
         for(var m_ind=0;m_ind<montage_size;m_ind++){
-            var inputs = createInputs();
+            var inputs = createInputs(width, height);
 
             var genome = new Genome(m_ind, num_output, num_hidden_neurons);
             genome.initializeGenome(); 
@@ -127,7 +123,7 @@ function main() {
         var num_cross = Math.ceil(0.5*montage_size);
 
         for(var m_ind=0;m_ind<num_mutation_1;m_ind++){
-            var inputs = createInputs();
+            var inputs = createInputs(width, height);
             var mutator = new Mutator();
             var mutated_genome = mutator.mutate(selected_genomes[0].clone())
             var outputs = mutated_genome.evaluate([inputs[0], inputs[1], inputs[2]]);
@@ -135,41 +131,85 @@ function main() {
             var data = outputs.output;
             
             if(num_output==3) data = data.reshape([data.shape[0]*3])//RGB Channels
-            var bytes = convertToByteArray(data.dataSync());
+            var bytes = convertToByteArray(data.dataSync(), width*height);
             dataArr.push({data:bytes, genome_id: mutated_genome.id, node_genes:node_genes});
         }
 
         for(var m_ind=0;m_ind<num_mutation_2;m_ind++){
-            var inputs = createInputs();
+            var inputs = createInputs(width, height);
             var mutator = new Mutator();
             var mutated_genome = mutator.mutate(selected_genomes[1].clone())
             var outputs = mutated_genome.evaluate([inputs[0], inputs[1], inputs[2]]);
             var node_genes = outputs.node_genes;
             var data = outputs.output;
             if(num_output==3) data = data.reshape([data.shape[0]*3])//RGB Channels
-            var bytes = convertToByteArray(data.dataSync());
+            var bytes = convertToByteArray(data.dataSync(), width*height);
             dataArr.push({data:bytes, genome_id: mutated_genome.id, node_genes:node_genes});
         }
 
         for(var m_ind=0;m_ind<num_cross;m_ind++){
-            var inputs = createInputs();
+            var inputs = createInputs(width, height);
             var mutator = new Mutator();
             var crossed_genome = mutator.cross(selected_genomes[0], selected_genomes[1]);
             var outputs = crossed_genome.evaluate([inputs[0], inputs[1], inputs[2]]);
             var node_genes = outputs.node_genes;
             var data = outputs.output;
             if(num_output==3) data = data.reshape([data.shape[0]*3])//RGB Channels
-            var bytes = convertToByteArray(data.dataSync());
+            var bytes = convertToByteArray(data.dataSync(), width*height);
             dataArr.push({data:bytes, genome_id: crossed_genome.id, node_genes:node_genes});
         }
         res.send(dataArr);
     });
+
+    app.post('/enlarge', function(req, res){
+        let params = req.body;
+        if(params.color == 'true') {
+            num_output = 3;
+        }else{
+            num_output = 1;
+        }
+        if(params.dense =='true') { 
+            num_hidden_neurons = 64; 
+        }else{
+            num_hidden_neurons = 32; 
+        }
+
+        var enlarged_width = 980;
+        var enlarged_height = 880;
+
+        var selected_genome = params.selected_genome;
+        selected_genome = Genome.reconstructGenome(selected_genome, num_output, num_hidden_neurons);
+        res.on('finish', () => { console.log('Response sent.') });
+
+        var inputs = createInputs(enlarged_width, enlarged_height);
+        var outputs = selected_genome.evaluate([inputs[0], inputs[1], inputs[2]]);
+        var data = outputs.output;
+        console.log(data.shape)
+            
+        if(num_output==3) data = data.reshape([data.shape[0]*3])//RGB Channels
+        var bytes = convertToByteArray(data.dataSync(), enlarged_height*enlarged_width, 'uint8');
+        console.log(bytes.length)
+        const canvas = createCanvas(enlarged_width, enlarged_height);
+        var ctx = canvas.getContext('2d');
+        var imageData = createImageData(bytes, enlarged_width, enlarged_height);
+        console.log(enlarged_width, enlarged_height)
+        ctx.putImageData(imageData, 0, 0);
+
+        res.send(canvas.toDataURL())
+
+    });
+
 }
 
-function convertToByteArray(data){
-    var bytes = new Array(width * height * 4); //Convert to Uint8 array on the UI
+function convertToByteArray(data, size, type){
+    var bytes = null;
+    if(type && type=='uint8'){
+        bytes = new Uint8ClampedArray(size * 4); //Convert to Uint8 array for enlarged images
+    }else{
+        bytes = new Array(size * 4); //Convert to Uint8 array on the UI
+    }
     var r,g,b,a,j,i;
-    for (i = 0; i < height * width; ++i) {
+    for (i = 0; i < size; ++i) {
         r = void 0, g = void 0, b = void 0, a = void 0;
         if(num_output == 3){
             r = data[i * 3] * 255;

@@ -105,9 +105,6 @@
                 url: '/mutate',
                 data: {'genomes':genomes, 'color': colorCheck, 'dense': denseCheck}
             }).then((response) => {
-                
-                //TESTING
-
                 let canvas = $("#montage")[0];
                    let ctx = canvas.getContext('2d');
                    let count = 0;
@@ -130,6 +127,26 @@
             });
         }
 
+        function enlarge(){
+            var selected_genome = null;
+            selected_thumbnails.forEach((id) => {
+                var genome = {'genome_id': thumbnail_genome_id_map.get(id),
+                                'node_genes':thumbnail_nodegene_map.get(id)};
+
+                selected_genome = genome;
+            });
+            colorCheck = $('#color-check')[0].checked;
+            denseCheck = $('#dense-check')[0].checked;
+
+            $.ajax({
+                type: 'POST',
+                url: '/enlarge',
+                data: {'selected_genome':selected_genome, 'color': colorCheck, 'dense': denseCheck}
+            }).then((response) => {
+                window.open(response,'_blank');
+            });
+        }
+
         function load_page(){
             load_montage(false, false);
 
@@ -142,6 +159,10 @@
 
             $("#mutate").click(() => {
                 mutate();
+            });
+
+            $("#enlarge").click(() => {
+                enlarge();
             });
 
             let canvas = $("#montage")[0];
@@ -166,7 +187,8 @@
     </div>
     <div id="montage-buttons">
         <button id="refresh" type="button" class="btn btn-dark">Refresh</button>&nbsp;&nbsp;&nbsp;&nbsp;
-        <button id="mutate" type="button" class="btn btn-dark">Mutate</button>
+        <button id="mutate" type="button" class="btn btn-dark">Mutate</button>&nbsp;&nbsp;&nbsp;&nbsp;
+        <button id="enlarge" type="button" class="btn btn-dark">Download Image</button>
     </div>
     
 </body>
