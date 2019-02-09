@@ -112,7 +112,7 @@
                         for(var j=0;j<Math.sqrt(montage_size);j++){
                             var image = new ImageData(Uint8ClampedArray.from(response[count].data), thumbnail_width, thumbnail_height);
                             ctx.putImageData(image, thumbnail_width*i, thumbnail_height*j);
-                            ctx.fillText(i+"_"+j, thumbnail_width*i+10, thumbnail_height*j+10);//TODO: Remove later. 
+                            // ctx.fillText(i+"_"+j, thumbnail_width*i+10, thumbnail_height*j+10);//TODO: Remove later. 
                             ctx.strokeStyle = '#fbfaf6';
                             ctx.lineWidth = 4;
                             ctx.strokeRect(thumbnail_width*i, thumbnail_height*j, thumbnail_width, thumbnail_height);

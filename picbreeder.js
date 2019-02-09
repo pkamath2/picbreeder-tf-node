@@ -55,8 +55,9 @@ function main() {
         if(req.query.dense =='true') { 
             num_hidden_neurons = 64; 
         }else{
-            num_hidden_neurons = 32; 
+            num_hidden_neurons = 16; 
         }
+        console.log(num_hidden_neurons, num_output)
         res.on('finish', () => { console.log('Response sent.') });
         let dataArr = [];
         for(var m_ind=0;m_ind<montage_size;m_ind++){
@@ -70,28 +71,9 @@ function main() {
             var data = outputs.output;
             if(num_output==3) data = data.reshape([data.shape[0]*3])//RGB Channels
             
-            //Duplicated from Tensorflow array_ops.toPixels(). That method does not work with await.
+            
             data = data.dataSync();
-            var bytes = new Array(width * height * 4); //Convert to Uint8 array on the UI
-            var r,g,b,a,j,i;
-            for (i = 0; i < height * width; ++i) {
-                r = void 0, g = void 0, b = void 0, a = void 0;
-                if(num_output == 3){
-                    r = data[i * 3] * 255;
-                    g = data[i * 3 + 1] * 255;
-                    b = data[i * 3 + 2] * 255;
-                }else{
-                    r = data[i] * 255;
-                    g = data[i] * 255;
-                    b = data[i] * 255;
-                }
-                a = 255;
-                j = i * 4;
-                bytes[j + 0] = Math.round(r);
-                bytes[j + 1] = Math.round(g);
-                bytes[j + 2] = Math.round(b);
-                bytes[j + 3] = Math.round(a);
-            }
+            var bytes = convertToByteArray(data, width*height);
             dataArr.push({data:bytes, genome_id: genome.id, node_genes:node_genes});
         }
         res.send(dataArr);
@@ -179,12 +161,12 @@ function main() {
 
         var selected_genome = params.selected_genome;
         selected_genome = Genome.reconstructGenome(selected_genome, num_output, num_hidden_neurons);
+        selected_genome.genomeHealthCheck();
         res.on('finish', () => { console.log('Response sent.') });
 
         var inputs = createInputs(enlarged_width, enlarged_height);
         var outputs = selected_genome.evaluate([inputs[0], inputs[1], inputs[2]]);
         var data = outputs.output;
-        console.log(data.shape)
             
         if(num_output==3) data = data.reshape([data.shape[0]*3])//RGB Channels
         var bytes = convertToByteArray(data.dataSync(), enlarged_height*enlarged_width, 'uint8');
@@ -201,6 +183,7 @@ function main() {
 
 }
 
+//Duplicated from Tensorflow array_ops.toPixels(). That method does not work with await.
 function convertToByteArray(data, size, type){
     var bytes = null;
     if(type && type=='uint8'){

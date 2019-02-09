@@ -139,41 +139,43 @@ class Genome{
     }
 
     evaluate(inputs){
-        var outputs_map = new Map();
-
-        this.node_gene_map.forEach((node_gene, id) => {
-            var input_shape = inputs[0].shape;
-            var node_output_size = (node_gene.is_output_node)?this.final_output_size:this.init_num_hidden_neurons;
-            if(! node_gene.disabled){
-                try{
-                    var input = null;
-                    if(node_gene.name.indexOf('input') > -1){
-                        input = inputs[node_gene.name.substring('input_'.length)];
-                        outputs_map.set(id, node_gene.evaluate(input, node_output_size, false, false));//shape doesnt matter. We only need activation here.
-                    }else{
-                        var from_node_ids = node_gene.from_conn_arr;
-                        var connInput = null;//tricky
-                        for(var j=0;j<from_node_ids.length;j++){
-                            if(connInput == null) connInput = tf.zeros([input_shape[0], this.init_num_hidden_neurons]);
-                            connInput = tf.add(connInput, outputs_map.get(from_node_ids[j]));
+        return tf.tidy(() => {
+            var outputs_map = new Map();
+            this.node_gene_map.forEach((node_gene, id) => {
+                var input_shape = inputs[0].shape;
+                var node_output_size = (node_gene.is_output_node)?this.final_output_size:this.init_num_hidden_neurons;
+                if(! node_gene.disabled){
+                    try{
+                        var input = null;
+                        if(node_gene.name.indexOf('input') > -1){
+                            input = inputs[node_gene.name.substring('input_'.length)];
+                            outputs_map.set(id, node_gene.evaluate(input, node_output_size, false, false));//shape doesnt matter. We only need activation here.
+                        }else{
+                            var from_node_ids = node_gene.from_conn_arr;
+                            var connInput = null;//tricky
+                            for(var j=0;j<from_node_ids.length;j++){
+                                if(connInput == null) connInput = tf.zeros([input_shape[0], this.init_num_hidden_neurons]);
+                                connInput = tf.add(connInput, outputs_map.get(from_node_ids[j]));
+                            }
+                            outputs_map.set(id, node_gene.evaluate(connInput, node_output_size, true, true));
                         }
-                        outputs_map.set(id, node_gene.evaluate(connInput, node_output_size, true, true));
+                    } catch (error) {
+                        console.log(node_gene)
+                        throw error;
                     }
-                } catch (error) {
-                    console.log(node_gene)
-                    throw error;
+                }else{
+                    outputs_map.set(id, tf.zeros([input_shape[0], this.init_num_hidden_neurons]));
                 }
-            }else{
-                outputs_map.set(id, tf.zeros([input_shape[0], this.init_num_hidden_neurons]));
-            }
+            });
+            return {output:outputs_map.get(100000), node_genes: [...this.node_gene_map.values()]};
         });
-        return {output:outputs_map.get(100000), node_genes: [...this.node_gene_map.values()]};
+        
     }
 
     sortByEvaluationSequence(){
         this.node_gene_map.forEach((node_gene, id) => {
-            console.log('Calculating complexity for -- ')
-            console.log(node_gene)
+            // console.log('Calculating complexity for -- ')
+            // console.log(node_gene)
             node_gene.computational_complexity = this.findComputationalComplexity(node_gene);
         });
 
