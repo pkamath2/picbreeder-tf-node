@@ -1,0 +1,173 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <style>
+        body{
+            font-family: 'American Typewriter', sans-serif;
+            background: floralwhite;
+        }
+        #montage-heading, #montage-subheading, #montage-container, #montage-buttons, #montage-form-el{
+            text-align: center;
+        }
+        #montage-buttons{
+            padding-top: 10px;
+        }
+        #montage {
+            margin: auto;
+            text-align: center;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script>
+        "use strict"
+
+        const montage_size = 25;
+        const thumbnail_height = 120;
+        const thumbnail_width = 136;
+
+        let thumbnail_position_map = new Map();
+        let thumbnail_nodegene_map = new Map();
+        let thumbnail_genome_id_map = new Map();
+        let selected_thumbnails = [];
+        let colorCheck = false;
+        let denseCheck = false;
+
+        function load_montage(){
+            selected_thumbnails = [];
+            thumbnail_position_map = new Map();
+            thumbnail_nodegene_map = new Map();
+            thumbnail_genome_id_map = new Map();
+            colorCheck = $('#color-check')[0].checked;
+            denseCheck = $('#dense-check')[0].checked;
+
+            $.ajax({url:'/montage?color='+colorCheck+'&dense='+denseCheck})
+                .done((response) => {
+                   let canvas = $("#montage")[0];
+                   let ctx = canvas.getContext('2d');
+                   let count = 0;
+                   for(var i=0;i<Math.sqrt(montage_size);i++){
+                        for(var j=0;j<Math.sqrt(montage_size);j++){
+                            var image = new ImageData(Uint8ClampedArray.from(response[count].data), thumbnail_width, thumbnail_height);
+                            ctx.putImageData(image, thumbnail_width*i, thumbnail_height*j);
+                            ctx.fillText(i+"_"+j, thumbnail_width*i+10, thumbnail_height*j+10);//TODO: Remove later. 
+                            ctx.strokeStyle = '#fbfaf6';
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(thumbnail_width*i, thumbnail_height*j, thumbnail_width, thumbnail_height);
+                            thumbnail_position_map.set(i+"_"+j, [thumbnail_width*i, thumbnail_height*j]); 
+                            thumbnail_nodegene_map.set(i+"_"+j, response[count].node_genes);
+                            thumbnail_genome_id_map.set(i+"_"+j, response[count].genome_id);
+                            count++;
+                        }
+                    }
+                });
+        }
+
+        function drawSelection(position, color){
+            let canvas = $("#montage")[0];
+            let ctx = canvas.getContext('2d');
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(position[0]+2, position[1]+2, thumbnail_width-4, thumbnail_height-4);
+        }
+
+        function select_thumb(e){
+            var max_selection = 2;
+            var key = Math.floor(e.offsetX/thumbnail_width)+'_'+Math.floor(e.offsetY/thumbnail_height);
+            var position = thumbnail_position_map.get(key);
+
+            if(selected_thumbnails.indexOf(key) > -1){
+                selected_thumbnails.pop(key);
+                drawSelection(position, '#fbfaf6');//floralwhite! 
+            }else{
+                if(selected_thumbnails.length == max_selection){
+                    var ex_key = selected_thumbnails.shift();
+                    drawSelection(thumbnail_position_map.get(ex_key), '#fbfaf6');//floralwhite! 
+                }
+                selected_thumbnails.push(key);
+                drawSelection(position, '#f442f1');//hot pink! 
+            }
+            console.log(selected_thumbnails)
+        }
+
+        function mutate(){
+            var genomes = [];
+            selected_thumbnails.forEach((id) => {
+                var genome = {'genome_id': thumbnail_genome_id_map.get(id),
+                                'node_genes':thumbnail_nodegene_map.get(id)};
+
+                genomes.push(genome);
+            });
+            colorCheck = $('#color-check')[0].checked;
+            denseCheck = $('#dense-check')[0].checked;
+
+            $.ajax({
+                type: 'POST',
+                url: '/mutate',
+                data: {'genomes':genomes, 'color': colorCheck, 'dense': denseCheck}
+            }).then((response) => {
+                
+                //TESTING
+
+                let canvas = $("#montage")[0];
+                   let ctx = canvas.getContext('2d');
+                   let count = 0;
+                   for(var i=0;i<Math.sqrt(montage_size);i++){
+                        for(var j=0;j<Math.sqrt(montage_size);j++){
+                            var image = new ImageData(Uint8ClampedArray.from(response[count].data), thumbnail_width, thumbnail_height);
+                            ctx.putImageData(image, thumbnail_width*i, thumbnail_height*j);
+                            ctx.fillText(i+"_"+j, thumbnail_width*i+10, thumbnail_height*j+10);//TODO: Remove later. 
+                            ctx.strokeStyle = '#fbfaf6';
+                            ctx.lineWidth = 4;
+                            ctx.strokeRect(thumbnail_width*i, thumbnail_height*j, thumbnail_width, thumbnail_height);
+                            thumbnail_position_map.set(i+"_"+j, [thumbnail_width*i, thumbnail_height*j]); 
+                            thumbnail_nodegene_map.set(i+"_"+j, response[count].node_genes);
+                            thumbnail_genome_id_map.set(i+"_"+j, response[count].genome_id);
+                            count++;
+                        }
+                    }
+            }).fail((error) => {
+                console.log(error)
+            });
+        }
+
+        function load_page(){
+            load_montage(false, false);
+
+            $('[type=checkbox]').change(() => {
+                load_montage(); 
+            });
+            $('#refresh').click(() => {
+                load_montage();
+            });
+
+            $("#mutate").click(() => {
+                mutate();
+            });
+
+            let canvas = $("#montage")[0];
+            canvas.addEventListener('click', select_thumb);
+        }
+    </script>
+</head>
+<body onload="load_page()">
+    <div id="montage-heading"><h1><b>Picbreeder</b></h1></div>
+    <div id="montage-subheading"><h4>Based on the original <a href="http://picbreeder.org" target="_blank">picbreeder</a>. 
+                                     Using <a href="https://eplex.cs.ucf.edu/papers/stanley_gpem07.pdf" target="_blank">CPPN-NEAT</a>.</h4></div>
+    <div id="montage-form-el" class="form-check">
+        <label class="form-check-label">
+            <input id="color-check" class="form-check-input" type="checkbox">Picbreeder in colors</input>
+        </label>&nbsp;&nbsp;&nbsp;&nbsp;
+        <label class="form-check-label">
+            <input id="dense-check" class="form-check-input" type="checkbox">Start with more dense initial patterns</input>
+        </label>
+    </div>
+    <div id="montage-container">
+        <canvas id='montage' width=680 height=600></canvas>
+    </div>
+    <div id="montage-buttons">
+        <button id="refresh" type="button" class="btn btn-dark">Refresh</button>&nbsp;&nbsp;&nbsp;&nbsp;
+        <button id="mutate" type="button" class="btn btn-dark">Mutate</button>
+    </div>
+    
+</body>
+</html>
