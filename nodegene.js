@@ -42,7 +42,7 @@ class NodeGene{
         
         if(with_weights){//inputs dont need matmul in the first round.
             var weights;
-            if(this.weight_seed == 1){// For future - Mutation. Add Connection, new incoming conn has weight of 1.
+            if(this.weight_seed == 1){// For Mutation.Add Connection, new incoming conn has weight of 1.
                 weights = tf.variable(tf.ones([input.shape[1], output_size]));
             }else{
                 weights = tf.variable(tf.randomNormal([input.shape[1], output_size],0.0,1.0,'float32', this.weight_seed));
