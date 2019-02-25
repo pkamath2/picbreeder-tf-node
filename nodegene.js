@@ -54,7 +54,8 @@ class NodeGene{
             }
         }
         if(this.name.indexOf('input')>-1 && this.activation=='tf.sin') {result = tf.mul(result, 10);}
-        return activationutil.enum_activations[this.activation](result);
+        if(this.activation == 'None') return result;
+        else return activationutil.enum_activations[this.activation](result);
     }
 
 }

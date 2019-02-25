@@ -31,8 +31,8 @@ class Genome{
 
     addNode(name, is_hidden, weight_seed, current_activation){
         var activation = current_activation;
-        if(!activation){
-            var activation = (name=='output'?activationutil.random_final_activation():activationutil.random_activation());
+        if(activation == null){
+            activation = (name=='output'?activationutil.random_final_activation():activationutil.random_activation());
             activation = ((name.indexOf('input')>-1)?activationutil.random_input_activation():activationutil.random_activation());
         }
         if(!weight_seed || weight_seed==null)weight_seed = Math.random();
@@ -58,7 +58,7 @@ class Genome{
     initializeGenome(){
         //Create input nodes
         for(var i=0;i<3;i++){ // 3 inputs - [t_x, t_y, t_r] 
-            this.addNode('input_'+i, false);
+            this.addNode('input_'+i, false, Math.random(), 'None');
         }
         //Create few hidden nodes
         for(var i=0;i<3;i++){
@@ -83,41 +83,33 @@ class Genome{
     }
 
     initializeSingleGenome(latent_vector_flag){
-        var node_x = this.addNode('input_0', false, Math.random(), 'tf.tanh');
-        var node_y = this.addNode('input_1', false, Math.random(), 'tf.tanh');
-        var node_r = this.addNode('input_2', false, Math.random(), 'tf.tanh');
+        var node_x = this.addNode('input_0', false, Math.random(), 'None');
+        var node_y = this.addNode('input_1', false, Math.random(), 'None');
+        var node_r = this.addNode('input_2', false, Math.random(), 'None');
         
 
         var hidden_1 = this.addNode('hidden_0', true, Math.random(), 'tf.tanh');
         var hidden_2 = this.addNode('hidden_1', true, Math.random(), 'tf.tanh');
         var hidden_3 = this.addNode('hidden_2', true, Math.random(), 'tf.tanh');
+        var hidden_4 = this.addNode('hidden_3', true, Math.random(), 'tf.tanh');
         
         //Create output node
         var out = this.addNode('output', false, Math.random(), 'tf.sigmoid');
 
         //Fully connected network
         this.addConnection(node_x.innovation_number, hidden_1.innovation_number);
-        this.addConnection(node_x.innovation_number, hidden_2.innovation_number);
-        this.addConnection(node_x.innovation_number, hidden_3.innovation_number);
-
         this.addConnection(node_y.innovation_number, hidden_1.innovation_number);
-        this.addConnection(node_y.innovation_number, hidden_2.innovation_number);
-        this.addConnection(node_y.innovation_number, hidden_3.innovation_number);
-
         this.addConnection(node_r.innovation_number, hidden_1.innovation_number);
-        this.addConnection(node_r.innovation_number, hidden_2.innovation_number);
-        this.addConnection(node_r.innovation_number, hidden_3.innovation_number);
 
         if(latent_vector_flag){
             var node_z = this.addNode('input_3', false, Math.random(), 'tf.tanh');
             this.addConnection(node_z.innovation_number, hidden_1.innovation_number);
-            this.addConnection(node_z.innovation_number, hidden_2.innovation_number);
-            this.addConnection(node_z.innovation_number, hidden_3.innovation_number);
         }
         
-        this.addConnection(hidden_1.innovation_number, out.innovation_number);
-        this.addConnection(hidden_2.innovation_number, out.innovation_number);
-        this.addConnection(hidden_3.innovation_number, out.innovation_number);
+        this.addConnection(hidden_1.innovation_number, hidden_2.innovation_number);
+        this.addConnection(hidden_2.innovation_number, hidden_3.innovation_number);
+        this.addConnection(hidden_3.innovation_number, hidden_4.innovation_number);
+        this.addConnection(hidden_4.innovation_number, out.innovation_number);
 
         this.genomeHealthCheck();
     }
@@ -193,7 +185,7 @@ class Genome{
                         if(node_gene.name.indexOf('input') > -1){
                             input = inputs[node_gene.name.substring('input_'.length)];
                             var with_bias = node_gene.name.substring('input_'.length)==3?true:false;
-                            outputs_map.set(id, node_gene.evaluate(input, node_output_size, false, true));//shape doesnt matter. We only need activation here.
+                            outputs_map.set(id, node_gene.evaluate(input, node_output_size, with_bias, true));//shape doesnt matter. We only need activation here.
                         }else{
                             var from_node_ids = node_gene.from_conn_arr;
                             var connInput = null;//tricky

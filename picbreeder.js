@@ -22,6 +22,7 @@ let z_dim = 8;
 const montage_size = 25; //Always use a proper square
 
 function createInputs(width, height, latent_vector_flag, periodic_flag){
+
     let t_x = tf.div(tf.div(tf.mul(tf.sub(tf.range(0, width), (width - 1) / 2.0), 1.0), (width - 1)), 0.5);
     t_x = t_x.reshape([1, width]);
     if(periodic_flag) t_x = tf.sin(tf.mul(t_x,10))
@@ -39,12 +40,13 @@ function createInputs(width, height, latent_vector_flag, periodic_flag){
     t_r = tf.transpose(t_r).flatten().reshape([height * width, 1]);
 
     if(latent_vector_flag){
-        let z = tf.randomUniform([1, z_dim],-2.0,2.0,'float32');
+        let z = tf.randomUniform([1, z_dim],-1.0,1.0,'float32');
         let t_z = z.reshape([1, z_dim]);
+        t_z = tf.mul(t_z, 1.0);
         t_z = tf.mul(t_z, tf.ones([height*width,1],'float32'));
+        t_z = tf.mul(t_z, 1.0)
         t_z = t_z.reshape([height*width, z_dim]);
 
-        // let t_z = tf.randomNormal([height * width, 1],0.0,1.0,'float32', Math.random());
         return [t_x, t_y, t_r, t_z];
     }
     return [t_x, t_y, t_r];
