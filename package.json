@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "start": "node picbreeder.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "yarn upgrade --pattern @tensorflow"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@tensorflow/tfjs-node": "^0.2.3",
+    "@tensorflow/tfjs-node": "^0.3.0",
     "argparse": "^1.0.10",
     "canvas": "^2.3.1",
     "express": "^4.16.4",

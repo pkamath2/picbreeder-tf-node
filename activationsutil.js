@@ -31,24 +31,25 @@ class activationutil{
     }
 
     static activations(ind){
-        return ['tf.tanh','tf.tanh', 'tf.softplus', 'tf.sin','tf.tanh','tf.tanh', 'activationutil.gaussian', 'tf.sigmoid'][ind];
+        // return ['tf.tanh','tf.tanh', 'tf.softplus', 'tf.sin','tf.tanh','tf.tanh', 'activationutil.gaussian', 'tf.sigmoid'][ind];
+        return ['tf.tanh','tf.softplus', 'tf.sin','activationutil.gaussian', 'tf.sigmoid'][ind];
     }
 
     static final_activations(ind){//Reduce the probablity of getting psychedelic activation.
         // return ['activationutil.tanh', 'activationutil.gaussian', 'activationutil.tanh', 'activationutil.gaussian', 'tf.sigmoid', 'tf.sigmoid', 'activationutil.psychedelic'][ind];
-        return ['activationutil.tanh', 'activationutil.tanh', 'activationutil.gaussian', 'activationutil.tanh', 'activationutil.tanh', 'tf.sigmoid', 'tf.sigmoid', 'activationutil.tanh'][ind];
+        return ['activationutil.gaussian', 'activationutil.tanh', 'tf.sigmoid', 'activationutil.psychedelic'][ind];
     }
 
     static random_activation(){
-        return activationutil.activations(Math.floor(Math.random()*(8)));
+        return activationutil.activations(Math.floor(Math.random()*(5)));
     }
 
     static random_final_activation(){
-        return activationutil.final_activations(Math.floor(Math.random()*(8)));
+        return activationutil.final_activations(Math.floor(Math.random()*(4)));
     }
 
     static random_input_activation(){
-        if(Math.random()>0.8) return 'tf.sin';
+        if(Math.random()>0.6) return 'tf.sin';
         else return 'tf.tanh';
     }
 }

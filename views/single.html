@@ -1,0 +1,136 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <style>
+        body{
+            font-family: 'American Typewriter', sans-serif;
+            background: floralwhite;
+        }
+        #single-heading, #single-subheading{
+            text-align: center;
+        }
+        #single-container{
+            /* border: solid black 1px; */
+            padding-top: 10px;
+            display: grid;
+            grid-template-columns: 10% 25% 45% 20%;
+        }
+        #single-sidebar{
+            /* border: solid black 1px; */
+            display: grid;
+            align-items: center;
+        }
+        .item{
+            /* border: solid black 1px; */
+            display: grid;
+            grid-template-columns: 25% 5% 10% 5% 10% 5% 10%;
+            align-items: stretch;/*start | end | center | stretch;*/
+        }
+        .item-labels{
+            /* border: solid black 1px; */
+            display: grid;
+            grid-template-columns: 25% 75%;
+            align-items: left;
+        }
+        .item-labels-row{
+            /* border: solid black 1px; */
+            display: grid;
+            grid-template-columns: 25% 5% 50% 20%;
+            align-items: left;
+        }
+        .item-buffer-row{
+            grid-row-start: 11;
+            grid-row-end: 20;
+        }
+        
+    </style>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script>
+        "use strict"
+
+        const montage_size = 25;
+        // const thumbnail_height = 120*2;
+        // const thumbnail_width = 136*2;
+        const thumbnail_height = 600;
+        const thumbnail_width = 680;
+
+        let num_hidden_layers = 8;
+        let num_neurons = 32;
+        let latent_vector = false;
+        let colorCheck = false;
+        let periodic_input = false;
+
+        function load_single(){
+            num_hidden_layers = $('input[name=num_hidden_layers]:checked').val();
+            num_neurons = $('input[name=num_neurons]:checked').val();
+            latent_vector = $('input[name=latent_vector]')[0].checked;
+            colorCheck = $('input[name=color]')[0].checked;
+            periodic_input = $('input[name=periodic_input]')[0].checked;
+
+            console.log(num_hidden_layers, num_neurons, latent_vector, colorCheck, periodic_input)
+            
+            $.ajax({url:'/single-gen?color='+colorCheck+'&num_hidden_layers='+num_hidden_layers+'&num_neurons='+num_neurons+'&latent_vector='+latent_vector+'&periodic_input='+periodic_input+'&height='+thumbnail_height+'&width='+thumbnail_width})
+                .done((response) => {
+                   let canvas = $("#single-canvas")[0];
+                   let ctx = canvas.getContext('2d');
+                   let count = 0;
+                   console.log(response.data.length)
+                   var image = new ImageData(Uint8ClampedArray.from(response.data), thumbnail_width, thumbnail_height);
+                   ctx.putImageData(image, 0, 0);
+            });
+        }
+
+        function load_page(){
+            load_single();
+
+            $("#generate").click(() => {
+                load_single();
+            });
+        }
+    </script>
+</head>
+<body onload="load_page()">
+    <div id="single-heading"><h1><b>My own Picbreeder</b></h1></div>
+    <div id="single-subheading"><h4>Based on the original <a href="http://picbreeder.org" target="_blank">picbreeder</a>. 
+                                     Using <a href="https://eplex.cs.ucf.edu/papers/stanley_gpem07.pdf" target="_blank">CPPN-NEAT</a>.</h4></div>
+    <div id="single-container">&nbsp;
+        <div id="single-sidebar">
+            <!--&nbsp;
+            <div class="item-labels"><br/><b>Number of hidden layers</b></div>
+            <div class="item">&nbsp;
+                <input type="radio" name="num_hidden_layers" value="8" checked/>8
+                <input type="radio" name="num_hidden_layers" value="16" />16
+                <input type="radio" name="num_hidden_layers" value="32" />32
+            </div>-->
+            &nbsp;
+            <div class="item-labels"><br/><b>Number of neurons in each layer</b></div>
+            <div class="item">&nbsp;
+                <input type="radio" name="num_neurons" value="32" checked/>32
+                <input type="radio" name="num_neurons" value="64"/>64
+                <input type="radio" name="num_neurons" value="128"/>128
+                <!-- <input type="radio" name="num_neurons" value="16" checked/>16
+                <input type="radio" name="num_neurons" value="32"/>32
+                <input type="radio" name="num_neurons" value="64"/>64 -->
+            </div>
+            &nbsp;
+            <div class="item-labels-row"><br/><input type="checkbox" name="color" id="color"/><b>&nbsp;Generate with color</b></div>
+            &nbsp;
+            <div class="item-labels-row"><br/><input type="checkbox" name="latent_vector" id="latent_vector"/><b>&nbsp;Add latent vector</b></div>
+            &nbsp;
+            <div class="item-labels-row"><br/><input type="checkbox" name="periodic_input" id="periodic_input"/><b>&nbsp;Use periodic input</b></div>
+            &nbsp;
+            <div class="item-labels-row">
+                &nbsp;
+                <p>&nbsp;</p>
+                <button id="generate" type="button" class="btn btn-dark">Generate</button>
+            </div>
+            <div class="item-buffer-row">
+                &nbsp;
+            </div>
+        </div>
+        <div id="single-main">
+                <canvas id='single-canvas' width=680 height=600></canvas>
+        </div>
+    </div>
+</body>
+</html>

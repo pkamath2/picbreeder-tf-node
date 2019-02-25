@@ -45,11 +45,11 @@ class NodeGene{
             if(this.weight_seed == 1){// For Mutation.Add Connection, new incoming conn has weight of 1.
                 weights = tf.variable(tf.ones([input.shape[1], output_size]));
             }else{
-                weights = tf.variable(tf.randomNormal([input.shape[1], output_size],0.0,1.0,'float32', this.weight_seed));
+                weights = tf.variable(tf.randomNormal([input.shape[1], output_size],0.0,2.0,'float32', this.weight_seed));
             }
             result = tf.matMul(input, weights);
             if(with_bias){
-                var bias = tf.variable(tf.randomNormal([1, output_size],0.0,1.0,'float32', this.weight_seed));
+                var bias = tf.variable(tf.randomNormal([1, output_size],0.0,2.0,'float32', this.weight_seed));
                 result = tf.add(result, tf.mul(bias, tf.ones([input.shape[0],1])));
             }
         }
