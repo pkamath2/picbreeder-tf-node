@@ -62,6 +62,10 @@ function main() {
         res.sendFile(__dirname+'/views/index.html');
     });
 
+    app.get('/views/dnaview.js', function(req, res){
+        res.sendFile(__dirname+'/views/dnaview.js');
+    });
+
     app.get('/montage', function (req, res) {
         if(req.query.color == 'true') {
             num_output = 3;

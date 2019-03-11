@@ -11,36 +11,49 @@
         }
         #single-container{
             /* border: solid black 1px; */
-            padding-top: 10px;
+            padding-top: 50px;
             display: grid;
-            grid-template-columns: 10% 25% 45% 20%;
+            grid-template-columns: 5% 25% 45% 20% 5%;
         }
         #single-sidebar{
-            /* border: solid black 1px; */
             display: grid;
-            align-items: center;
+            align-items: left;
+            vertical-align: middle;
+        }
+        #single-main{
+            text-align: center;
+
+        }
+        #intro{
+            /* border: solid black 2px; */
+            text-align: left;
+            padding-right: 50px;
         }
         .item{
             /* border: solid black 1px; */
             display: grid;
-            grid-template-columns: 25% 5% 10% 5% 10% 5% 10%;
+            grid-template-columns: 15% 5% 10% 5% 10% 5% 10%;
             align-items: stretch;/*start | end | center | stretch;*/
         }
         .item-labels{
             /* border: solid black 1px; */
             display: grid;
-            grid-template-columns: 25% 75%;
+            grid-template-columns: 15% 85%;
             align-items: left;
         }
+
         .item-labels-row{
             /* border: solid black 1px; */
             display: grid;
-            grid-template-columns: 25% 5% 50% 20%;
+            grid-template-columns: 15% 5% 60% 20%;
             align-items: left;
         }
         .item-buffer-row{
             grid-row-start: 15;
             grid-row-end: 20;
+        }
+        .labels{
+            padding-top: 20px;
         }
         
     </style>
@@ -90,44 +103,49 @@
     </script>
 </head>
 <body onload="load_page()">
-    <div id="single-heading"><h1><b>My own Picbreeder</b></h1></div>
+    <div id="single-heading"><h1><b>My Own Picbreeder</b></h1></div>
     <div id="single-subheading"><h4>Based on the original <a href="http://picbreeder.org" target="_blank">picbreeder</a>. 
                                      Using <a href="https://eplex.cs.ucf.edu/papers/stanley_gpem07.pdf" target="_blank">CPPN-NEAT</a>.</h4></div>
     <div id="single-container">&nbsp;
-        <div id="single-sidebar">
-            <!--&nbsp;
-            <div class="item-labels"><br/><b>Number of hidden layers</b></div>
-            <div class="item">&nbsp;
-                <input type="radio" name="num_hidden_layers" value="8" checked/>8
-                <input type="radio" name="num_hidden_layers" value="16" />16
-                <input type="radio" name="num_hidden_layers" value="32" />32
-            </div>-->
-            &nbsp;
-            <div class="item-labels"><br/><b>Number of neurons in each layer</b></div>
-            <div class="item">&nbsp;
-                    <input type="radio" name="num_neurons" value="8" checked/>8
-                    <input type="radio" name="num_neurons" value="16"/>16
-                <input type="radio" name="num_neurons" value="32"/>32
-            </div>
-            &nbsp;
-            <div class="item-labels-row"><br/><input type="checkbox" name="color" id="color"/><b>&nbsp;Generate with color</b></div>
-            &nbsp;
-            <div class="item-labels-row"><br/><input type="checkbox" name="latent_vector" id="latent_vector"/><b>&nbsp;Add latent vector</b></div>
-            &nbsp;
-            <div class="item-labels-row"><br/><input type="checkbox" name="periodic_input" id="periodic_input"/><b>&nbsp;Use periodic input</b></div>
-            &nbsp;
-            <div class="item-labels-row">
-                &nbsp;
-                <p>&nbsp;</p>
-                <button id="generate" type="button" class="btn btn-dark">Generate</button>
-            </div>
-            <div class="item-buffer-row">
-                &nbsp;
-            </div>
-        </div>
+            <div id="intro">
+                    <h4>What is <b>my own picbreeder</b>?</h4>
+                    <p>This app is my attempt to recreate <a href="http://picbreeder.org">picbreeder</a> using javascript. 
+                        Specifically tfjs-node for number crunching & d3 force layout to visualize the DNA.</p>
+                    <h5>How to use this app?</h5>
+                    <p>
+                      This app is based on the CPPN concept outlined in the <a href="https://eplex.cs.ucf.edu/papers/stanley_gpem07.pdf">CPPN-NEAT</a> paper. We pass pixel positions on the canvas through a Neural Network and plot the output in RGB (or BW) on the screen.
+                       Click on 'Generate' to create newer patterns. Choose more neurons for denser computations and more complex patterns. Check periodic for more pretty patterns! 
+                    </p>
+                    <p>I've written a <a href="">blog post</a> with more details. Source code is <a href="https://github.com/pkamath2/picbreeder-tf-node">here</a>.</p>
+                </div>
+        
         <div id="single-main">
-                <canvas id='single-canvas' width=680 height=600></canvas>
+            <canvas id='single-canvas' width=680 height=600></canvas>
         </div>
+        <div id="single-sidebar">
+                &nbsp;
+                <div class="item-labels"><br/><b>Number of neurons in each layer</b></div>
+                <div class="item">&nbsp;
+                        <input type="radio" name="num_neurons" value="8" checked/>8
+                        <input type="radio" name="num_neurons" value="16"/>16
+                    <input type="radio" name="num_neurons" value="32"/>32
+                </div>
+                &nbsp;
+                <div class="item-labels-row"><br/><input type="checkbox" name="color" id="color"/><p class="labels"><b>&nbsp;Generate with color</b></p></div>
+                &nbsp;
+                <div class="item-labels-row"><br/><input type="checkbox" name="latent_vector" id="latent_vector"/><p class="labels"><b>&nbsp;Add latent vector</b></p></div>
+                &nbsp;
+                <div class="item-labels-row"><br/><input type="checkbox" name="periodic_input" id="periodic_input"/><p class="labels"><b>&nbsp;Use periodic input</b></p></div>
+                &nbsp;
+                <div class="item-labels-row">
+                    &nbsp;
+                    <p>&nbsp;</p>
+                    <button id="generate" type="button" class="btn btn-dark">Generate</button>
+                </div>
+                <div class="item-buffer-row">
+                    &nbsp;
+                </div>
+            </div>
     </div>
 </body>
 </html>

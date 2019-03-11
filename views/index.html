@@ -9,6 +9,11 @@
         #montage-heading, #montage-subheading, #montage-container, #montage-buttons, #montage-form-el{
             text-align: center;
         }
+        #montage-container{
+            display: grid;
+            grid-template-columns: 4% 21% 50% 20% 5%;
+            /* border: solid black 1px; */
+        }
         #montage-buttons{
             padding-top: 10px;
         }
@@ -16,14 +21,26 @@
             margin: auto;
             text-align: center;
         }
+
+        #intro{
+            /* border: solid black 2px; */
+            text-align: left;
+        }
+        #dna_1, #dna_2{
+            border: solid black 2px;
+        }
     </style>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="/views/dnaview.js"></script>
+
     <script>
         "use strict"
 
         const montage_size = 25;
         const thumbnail_height = 120;
         const thumbnail_width = 136;
+        const scale = d3.scaleOrdinal(d3.schemeCategory10);
         // const thumbnail_height = 100;
         // const thumbnail_width = 116;
 
@@ -51,7 +68,7 @@
                         for(var j=0;j<Math.sqrt(montage_size);j++){
                             var image = new ImageData(Uint8ClampedArray.from(response[count].data), thumbnail_width, thumbnail_height);
                             ctx.putImageData(image, thumbnail_width*i, thumbnail_height*j);
-                            ctx.fillText(i+"_"+j, thumbnail_width*i+10, thumbnail_height*j+10);//TODO: Remove later. 
+                            // ctx.fillText(i+"_"+j, thumbnail_width*i+10, thumbnail_height*j+10);//TODO: Remove later. 
                             ctx.strokeStyle = '#fbfaf6';
                             ctx.lineWidth = 4;
                             ctx.strokeRect(thumbnail_width*i, thumbnail_height*j, thumbnail_width, thumbnail_height);
@@ -72,6 +89,29 @@
             ctx.strokeRect(position[0]+2, position[1]+2, thumbnail_width-4, thumbnail_height-4);
         }
 
+        
+
+        function findCoordinates(id){
+            var r_cx = 50;
+            var r_cy = 50;
+            if(id <= 3){
+                r_cx = r_cx + id*r_cx;
+            }else if(id=='100000'){
+                r_cx = 150;
+                r_cy = 200;
+            }else {
+                r_cx = r_cx + id*15;
+                r_cy = r_cy + id*15;
+            }
+            return [r_cx, r_cy];
+        }
+
+        function clearDrawings(){
+            d3.select('#dna_1_svg').selectAll("*").remove();
+            d3.select('#dna_2_svg').selectAll("*").remove();
+            selected_thumbnails = new Array();
+        }
+
         function select_thumb(e){
             var max_selection = 2;
             var key = Math.floor(e.offsetX/thumbnail_width)+'_'+Math.floor(e.offsetY/thumbnail_height);
@@ -87,8 +127,10 @@
                 }
                 selected_thumbnails.push(key);
                 drawSelection(position, '#f442f1');//hot pink! 
+                drawDNA(selected_thumbnails)
             }
-            console.log(selected_thumbnails)
+
+            // console.log(selected_thumbnails)
         }
 
         function mutate(){
@@ -154,13 +196,16 @@
 
             $('[type=checkbox]').change(() => {
                 load_montage(); 
+                clearDrawings();
             });
             $('#refresh').click(() => {
                 load_montage();
+                clearDrawings();
             });
 
             $("#mutate").click(() => {
                 mutate();
+                clearDrawings();
             });
 
             $("#enlarge").click(() => {
@@ -173,7 +218,7 @@
     </script>
 </head>
 <body onload="load_page()">
-    <div id="montage-heading"><h1><b>My own Picbreeder</b></h1></div>
+    <div id="montage-heading"><h1><b>My Own Picbreeder</b></h1></div>
     <div id="montage-subheading"><h4>Based on the original <a href="http://picbreeder.org" target="_blank">picbreeder</a>. 
                                      Using <a href="https://eplex.cs.ucf.edu/papers/stanley_gpem07.pdf" target="_blank">CPPN-NEAT</a>.</h4></div>
     <div id="montage-form-el" class="form-check">
@@ -184,8 +229,25 @@
             <input id="dense-check" class="form-check-input" type="checkbox">Start with more dense initial patterns</input>
         </label>
     </div>
-    <div id="montage-container">
+    <div id="montage-container">&nbsp;
+        <div id="intro">
+            <h4>What is <b>my own picbreeder</b>?</h4>
+            <p>This app is my attempt to recreate <a href="http://picbreeder.org">picbreeder</a> using javascript. 
+                Specifically tfjs-node for number crunching & d3 force layout to visualize the DNA.</p>
+            <h5>How to use this app?</h5>
+            <p>
+              Select any two patterns from the montage. You can view the neural network (a.k.a DNA) responsible for generating the pattern on the right hand side. 
+              Click mutate to cross breed and mutate these two neural networks to create more patterns!  
+            </p>
+            <p>You can breed patterns in colors or create more dense patterns using the top two checkboxes. The networks are mutated at random and crossed at random, inline with some of the ideas outlined in the <a href="https://eplex.cs.ucf.edu/papers/stanley_gpem07.pdf">CPPN-NEAT</a> paper.</p>
+            <p>Like any pattern after mutation? Click on 'Download Image'. Hit 'Refresh' to restart.</p>
+            <p>Also, check out the <a href="/single">single pattern generator</a>. I've written a <a href="">blog post</a> with more details. Source code is <a href="https://github.com/pkamath2/picbreeder-tf-node">here</a>.</p>
+        </div>
         <canvas id='montage' width=680 height=600></canvas>
+        <div id="dna">
+            <div id="dna_1"> <svg id='dna_1_svg' width=300 height=300><text x=15% y=50%>Select montage to view DNA</text></svg></div>        
+            <div id="dna_2"> <svg id='dna_2_svg' width=300 height=300><text x=15% y=50%>Select montage to view DNA</text></svg></div>        
+        </div>
     </div>
     <div id="montage-buttons">
         <button id="refresh" type="button" class="btn btn-dark">Refresh</button>&nbsp;&nbsp;&nbsp;&nbsp;

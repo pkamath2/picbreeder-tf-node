@@ -61,7 +61,7 @@ class Genome{
             this.addNode('input_'+i, false, Math.random(), 'None');
         }
         //Create few hidden nodes
-        for(var i=0;i<3;i++){
+        for(var i=0;i<1;i++){
             this.addNode('hidden_'+i, true);
         }
         //Create output node
