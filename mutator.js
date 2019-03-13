@@ -1,5 +1,4 @@
 const tf = require('@tensorflow/tfjs-node');
-const NodeGene = require('./nodegene');
 const Genome = require('./genome');
 
 class Mutator{
@@ -59,7 +58,6 @@ class Mutator{
             genome.removeConnection(node_from_id, node_to_id);
     
             var node_new = genome.addNode('hidden_'+(hidden_count+1), true, 1);//weight_seed = 1 for new node.
-            // var node_new = genome.addNode('hidden_'+(hidden_count+1), true, Math.random());//weight_seed = 1 for new node.
             genome.addConnection(node_from_id, node_new.innovation_number);
             genome.addConnection(node_new.innovation_number, node_to_id);
     

@@ -12,8 +12,6 @@ const port = (process.env.PORT || 9997);
 /*Thumbnail props*/
 const height = 120;
 const width = 136;
-// const height = 100;
-// const width = 116;
 /*Genome Props*/
 let num_hidden_neurons = 8;
 let num_output = 1;
@@ -23,15 +21,15 @@ const montage_size = 25; //Always use a proper square
 
 function createInputs(width, height, latent_vector_flag, periodic_flag){
 
-    let t_x = tf.div(tf.div(tf.mul(tf.sub(tf.range(0, width), (width - 1) / 2.0), 1.0), (width - 1)), 0.5);
+    //Convert x & y inputs to approx -0.5 to 0.5 range. 
+    let t_x = tf.add(tf.div(tf.mul(tf.range(0, width), 1.2), width), -0.5);
     t_x = t_x.reshape([1, width]);
-    if(periodic_flag) t_x = tf.sin(tf.mul(t_x,10))
+    if(periodic_flag) t_x = tf.sin(tf.mul(t_x,25))
     t_x = tf.matMul(tf.ones([height, 1], 'float32'), t_x);
     t_x = t_x.flatten().reshape([height * width, 1])
-    // console.log(t_x.dataSync())
-    let t_y = tf.div(tf.div(tf.mul(tf.sub(tf.range(0, height), (height - 1) / 2.0), 1.0), (height - 1)), 0.5);
+    let t_y = tf.add(tf.div(tf.mul(tf.range(0, height), 1.2), height), -0.5);
     t_y = t_y.reshape([height, 1]);
-    if(periodic_flag) t_y = tf.sin(tf.mul(t_y,10))
+    if(periodic_flag) t_y = tf.sin(tf.mul(t_y,25))
     t_y = tf.matMul(t_y, tf.ones([1, width], 'float32'));
     t_y = t_y.flatten().reshape([height * width, 1])
     
@@ -77,7 +75,6 @@ function main() {
         }else{
             num_hidden_neurons = 16; 
         }
-        // console.log(num_hidden_neurons, num_output)
         res.on('finish', () => { console.log('Response sent.') });
         let dataArr = [];
         for(var m_ind=0;m_ind<montage_size;m_ind++){
@@ -176,8 +173,6 @@ function main() {
             num_hidden_neurons = 32; 
         }
 
-        // var enlarged_width = 980;
-        // var enlarged_height = 880;
         var enlarged_width = width*2;
         var enlarged_height = height*2;
 
@@ -213,7 +208,6 @@ function main() {
         }else{
             num_output = 1;
         }
-console.log(params.latent_vector)
         var enlarged_width = +params.width;
         var enlarged_height = +params.height;
         var latent_vector_flag = params.latent_vector=='true'?true:false;

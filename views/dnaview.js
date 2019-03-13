@@ -25,7 +25,6 @@ function drawDNA(selected_thumbnails){
         let nodes = [];
         let links = [];
         let node_genes = thumbnail_nodegene_map.get(t);
-        console.log(node_genes)
         node_genes.forEach(node_gene => {
             nodes.push({'id':node_gene.innovation_number, 'group':node_gene.activation, 'name':node_gene.name+"_"+node_gene.activation});
             node_gene.from_conn_arr.forEach(c => {
@@ -36,7 +35,7 @@ function drawDNA(selected_thumbnails){
         nodes = nodes.map(d => Object.create(d));
         const simulation = d3.forceSimulation(nodes)
                          .force("collide", d3.forceCollide(50))
-                        .force("link", d3.forceLink(links).id(d => d.id));
+                         .force("link", d3.forceLink(links).id(d => d.id));
         nodes.forEach(n => {
                 if(n.name.indexOf('input_0')>-1){n.fx=100; n.fy=50;} 
                 if(n.name.indexOf('input_1')>-1){n.fx=150; n.fy=50;} 
@@ -50,7 +49,6 @@ function drawDNA(selected_thumbnails){
                         .attr("stroke-opacity", 0.6)
                         .attr("stroke-width", d => 1);
 
-        console.log(nodes)
         const g_node = svg.append("g").selectAll("g").data(nodes).enter().append("g");
 
         const node = g_node
