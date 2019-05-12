@@ -228,7 +228,7 @@ class Genome {
 
     findComputationalComplexity(node_gene) {
         var complexity = 0;
-        console.log("Computing complexity for: " + node_gene.innovation_number + ":" + node_gene.activation);
+        // console.log("Computing complexity for: " + node_gene.innovation_number + ":" + node_gene.activation);
         node_gene.from_conn_arr.forEach(c => {
             complexity++;
             var sub_complexity = this.findComputationalComplexity(this.node_gene_map.get(c));

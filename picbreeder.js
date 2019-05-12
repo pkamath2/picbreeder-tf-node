@@ -21,11 +21,12 @@ const montage_size = 25; //Always use a proper square
 
 function createInputs(width, height, latent_vector_flag, periodic_flag, squared_input){
 
+    let scale = 2.0;
     //Convert x & y inputs to approx -0.5 to 0.5 range. 
     let t_x = tf.add(tf.div(tf.mul(tf.range(0, width), 1.0), width), -0.5);
     t_x = t_x.reshape([1, width]);
     if(periodic_flag) t_x = tf.sin(tf.mul(t_x,25));
-    if(squared_input) t_x = tf.pow(t_x,2);
+    if(squared_input) t_x = tf.pow(tf.mul(t_x, scale),2);
     t_x = tf.matMul(tf.ones([height, 1], 'float32'), t_x);
     t_x = t_x.flatten().reshape([height * width, 1])
     let t_y = tf.add(tf.div(tf.mul(tf.range(0, height), 1.0), height), -0.5);
@@ -43,7 +44,6 @@ function createInputs(width, height, latent_vector_flag, periodic_flag, squared_
         let t_z = z.reshape([1, z_dim]);
         t_z = tf.mul(t_z, 1.0);
         t_z = tf.mul(t_z, tf.ones([height*width,1],'float32'));
-        t_z = tf.mul(t_z, 1.0)
         t_z = t_z.reshape([height*width, z_dim]);
 
         return [t_x, t_y, t_r, t_z];
