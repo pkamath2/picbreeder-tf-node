@@ -19,15 +19,16 @@ let z_dim = 8;
 /*Montage props*/
 const montage_size = 25; //Always use a proper square
 
-function createInputs(width, height, latent_vector_flag, periodic_flag){
+function createInputs(width, height, latent_vector_flag, periodic_flag, squared_input){
 
     //Convert x & y inputs to approx -0.5 to 0.5 range. 
-    let t_x = tf.add(tf.div(tf.mul(tf.range(0, width), 1.2), width), -0.5);
+    let t_x = tf.add(tf.div(tf.mul(tf.range(0, width), 1.0), width), -0.5);
     t_x = t_x.reshape([1, width]);
-    if(periodic_flag) t_x = tf.sin(tf.mul(t_x,25))
+    if(periodic_flag) t_x = tf.sin(tf.mul(t_x,25));
+    if(squared_input) t_x = tf.pow(t_x,2);
     t_x = tf.matMul(tf.ones([height, 1], 'float32'), t_x);
     t_x = t_x.flatten().reshape([height * width, 1])
-    let t_y = tf.add(tf.div(tf.mul(tf.range(0, height), 1.2), height), -0.5);
+    let t_y = tf.add(tf.div(tf.mul(tf.range(0, height), 1.0), height), -0.5);
     t_y = t_y.reshape([height, 1]);
     if(periodic_flag) t_y = tf.sin(tf.mul(t_y,25))
     t_y = tf.matMul(t_y, tf.ones([1, width], 'float32'));
@@ -212,12 +213,13 @@ function main() {
         var enlarged_height = +params.height;
         var latent_vector_flag = params.latent_vector=='true'?true:false;
         var periodic_flag = params.periodic_input=='true'?true:false;
+        var squared_input = params.squared_input=='true'?true:false;
         var genome = new Genome(1, num_output, +params.num_neurons);
         genome.initializeSingleGenome(latent_vector_flag);
 
         res.on('finish', () => { console.log('Response sent.') });
 
-        var inputs = createInputs(enlarged_width, enlarged_height, latent_vector_flag, periodic_flag);
+        var inputs = createInputs(enlarged_width, enlarged_height, latent_vector_flag, periodic_flag, squared_input);
         var outputs = genome.evaluate([inputs[0], inputs[1], inputs[2], inputs[3]]);
         var data = outputs.output;
             
