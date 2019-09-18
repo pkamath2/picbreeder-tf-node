@@ -187,7 +187,9 @@
                 url: '/enlarge',
                 data: {'selected_genome':selected_genome, 'color': colorCheck, 'dense': denseCheck}
             }).then((response) => {
-                window.open(response,'_blank');
+                //Data urls do not open in Chrome. Below fix is as per - https://ourcodeworld.com/articles/read/682/what-does-the-not-allowed-to-navigate-top-frame-to-data-url-javascript-exception-means-in-google-chrome
+                var win = window.open();
+                win.document.write('<iframe src="' + response  + '" frameborder="0" style="border:0; padding-top:50px; padding-left:10%;width:100%; height:100%;background: black;" allowfullscreen></iframe>');
             });
         }
 
