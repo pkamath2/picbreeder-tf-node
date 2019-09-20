@@ -77,8 +77,8 @@
         const montage_size = 25;
         // const thumbnail_height = 120*2;
         // const thumbnail_width = 136*2;
-        const thumbnail_height = 780;
-        const thumbnail_width = 980;
+        let thumbnail_height = 780;
+        let thumbnail_width = 980;
 
         let num_hidden_layers = 8;
         let num_neurons = 32;
@@ -94,12 +94,27 @@
             colorCheck = $('input[name=color]')[0].checked;
             periodic_input = $('input[name=periodic_input]')[0].checked;
             squared_input = $('input[name=squared_input]')[0].checked;
+            //Mobile
+            if(screen.width < 500){
+                thumbnail_width = 500;
+                thumbnail_height = 490;
+
+                $('#single-canvas')[0].width = 500;
+                $('#single-canvas')[0].height = 490;
+            }else{
+                thumbnail_width = 980;
+                thumbnail_height = 780;
+
+                $('#single-canvas')[0].width = 980;
+                $('#single-canvas')[0].height = 780;
+            }            
 
             console.log(num_hidden_layers, num_neurons, latent_vector, colorCheck, periodic_input, squared_input)
 
             $.ajax({ url: '/single-gen?color=' + colorCheck + '&num_hidden_layers=' + num_hidden_layers + '&num_neurons=' + num_neurons + '&latent_vector=' + latent_vector + '&periodic_input=' + periodic_input + '&squared_input=' + squared_input + '&height=' + thumbnail_height + '&width=' + thumbnail_width })
                 .done((response) => {
                     let canvas = $("#single-canvas")[0];
+                    
                     let ctx = canvas.getContext('2d');
                     let count = 0;
                     console.log(response.data.length)
@@ -146,7 +161,7 @@
         </div>
 
         <div id="single-main">
-            <canvas id='single-canvas' width=980 height=780></canvas>
+            <canvas id='single-canvas'></canvas>
         </div>
         <div id="single-sidebar">
             &nbsp;
