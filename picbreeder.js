@@ -174,10 +174,10 @@ function main() {
             num_hidden_neurons = 32; 
         }
 
-        // var enlarged_width = width*2;
-        // var enlarged_height = height*2;
-        var enlarged_width = 980;
-        var enlarged_height = 780;
+        var enlarged_width = width*4;
+        var enlarged_height = height*4;
+        // var enlarged_width = 980;
+        // var enlarged_height = 780;
 
         var selected_genome = params.selected_genome;
         selected_genome = Genome.reconstructGenome(selected_genome, num_output, num_hidden_neurons);
