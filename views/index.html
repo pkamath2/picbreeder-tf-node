@@ -5,13 +5,14 @@
         body{
             font-family: 'American Typewriter', sans-serif;
             background: floralwhite;
+            overflow-x: scroll;
         }
         #montage-heading, #montage-subheading, #montage-container, #montage-buttons, #montage-form-el{
             text-align: center;
         }
         #montage-container{
             display: grid;
-            grid-template-columns: 4% 21% 50% 20% 5%;
+            grid-template-columns: 5% 20% 50% 20% 5%;
             /* border: solid black 1px; */
         }
         #montage-buttons{
@@ -38,8 +39,10 @@
         "use strict"
 
         const montage_size = 25;
-        const thumbnail_height = 120;
-        const thumbnail_width = 136;
+        let thumbnail_height = 120;
+        let thumbnail_width = 136;
+
+        
         const scale = d3.scaleOrdinal(d3.schemeCategory10);
         // const thumbnail_height = 100;
         // const thumbnail_width = 116;
@@ -50,6 +53,9 @@
         let selected_thumbnails = [];
         let colorCheck = false;
         let denseCheck = false;
+        let isMobile = false;
+
+       
 
         function load_montage(){
             selected_thumbnails = [];
@@ -59,7 +65,24 @@
             colorCheck = $('#color-check')[0].checked;
             denseCheck = $('#dense-check')[0].checked;
 
-            $.ajax({url:'/montage?color='+colorCheck+'&dense='+denseCheck})
+             //Mobile
+            if(screen.width < 500){
+                thumbnail_height = 60;
+                thumbnail_width = 68;
+                isMobile = true;
+
+                $('#montage')[0].width = 340;
+                $('#montage')[0].height = 300;
+            }else{
+                thumbnail_height = 120;
+                thumbnail_width = 136;
+                isMobile = false;
+
+                $('#montage')[0].width = 680;
+                $('#montage')[0].height = 600;
+            }
+
+            $.ajax({url:'/montage?color='+colorCheck+'&dense='+denseCheck+'&isMobile='+isMobile})
                 .done((response) => {
                    let canvas = $("#montage")[0];
                    let ctx = canvas.getContext('2d');
@@ -174,7 +197,7 @@
             var selected_genome = null;
             selected_thumbnails.forEach((id) => {
                 var genome = {'genome_id': thumbnail_genome_id_map.get(id),
-                                'node_genes':thumbnail_nodegene_map.get(id)};
+                              'node_genes':thumbnail_nodegene_map.get(id)};
 
                 selected_genome = genome;
             });
@@ -245,7 +268,7 @@
             <p>Like any pattern after mutation? Click on 'Download Image'. Hit 'Refresh' to restart.</p>
             <p>Also, check out the <a href="/single">single pattern generator</a>. I've written a <a href="https://medium.com/@prnmkmth/generative-art-using-neural-networks-and-javascript-d2c353fb0574">blog post</a> with more details. Source code is <a href="https://github.com/pkamath2/picbreeder-tf-node">here</a>.</p>
         </div>
-        <canvas id='montage' width=680 height=600></canvas>
+        <div><canvas id='montage'></canvas></div>
         <div id="dna">
             <div id="dna_1"> <svg id='dna_1_svg' width=300 height=300><text x=15% y=50%>Select montage to view DNA</text></svg></div>        
             <div id="dna_2"> <svg id='dna_2_svg' width=300 height=300><text x=15% y=50%>Select montage to view DNA</text></svg></div>        

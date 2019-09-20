@@ -10,8 +10,8 @@ const Mutator = require('./mutator');
 /**Express props */
 const port = (process.env.PORT || 9997);
 /*Thumbnail props*/
-const height = 120;
-const width = 136;
+let height = 120;
+let width = 136;
 /*Genome Props*/
 let num_hidden_neurons = 8;
 let num_output = 1;
@@ -75,6 +75,13 @@ function main() {
             num_hidden_neurons = 64; 
         }else{
             num_hidden_neurons = 16; 
+        }
+        if(req.query.isMobile == 'true'){
+            height = 60;
+            width = 68;
+        }else{
+            height = 120;
+            width = 136;
         }
         res.on('finish', () => { console.log('Response sent.') });
         let dataArr = [];
